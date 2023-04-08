@@ -1,0 +1,21 @@
+---
+- hosts: all
+  become: true
+  tasks:
+
+  - name: Ensure vm host's ssh-key is present in known_hosts
+    ansible.builtin.lineinfile: 
+      path: /home/vagrant/.ssh/known_hosts
+      search_string: 'tymons@laptop'
+      line: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIBEVYzgKvsB/pFwBSQr7ch6wzParklLY0DaK56r7uYj tymons@laptop
+      owner: vagrant
+      group: vagrant
+      mode: '0644'
+
+  - name: Ensure ssh is running
+    ansible.builtin.systemd:
+      name: ssh
+      state: started
+      enabled: true
+  
+
