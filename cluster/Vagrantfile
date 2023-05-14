@@ -21,9 +21,9 @@ Vagrant.configure("2") do |config|
           vb.cpus = 2
           vb.name = "controlplane"
       end
-      # cp.vm.provision "ansible" do |ansible|
-      #   ansible.playbook="playbooks/controlplane.yml"
-      # end
+     cp.vm.provision "ansible" do |ansible|
+       ansible.playbook="playbooks/controlplane.yml"
+     end
   end
 
   (1..N).each do |i|
@@ -38,9 +38,9 @@ Vagrant.configure("2") do |config|
             vb.cpus = 1
             vb.name = "node-#{i}"
         end
-        # node.vm.provision "ansible" do |ansible|
-        #   ansible.playbook="playbooks/node.yml"
-        # end
+        node.vm.provision "ansible" do |ansible|
+          ansible.playbook="playbooks/node.yml"
+        end
     end
   end
 end
