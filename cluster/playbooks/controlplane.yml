@@ -49,6 +49,7 @@
       - kubelet
       - kubeadm
       - kubectl
+      - nfs-utils
       disable_excludes: all
       exclude: kubernetes
       state: present
@@ -150,3 +151,12 @@
   - name: Copy join command to local file
     become: false
     local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="./join"
+
+  - name: Insert cluster's servers in /etc/hosts
+    blockinfile:
+      path: /etc/hosts
+      block: |
+        192.168.56.9  nfs-server.chmurki.kti.pl nfs-server
+        192.168.56.10 controlplane.chmurki.kti.pl controlplane
+        192.168.56.11 node-01.chmurki.kti.pl node-01
+        192.168.56.12 node-02.chmurki.kti.pl node-02

@@ -1,0 +1,44 @@
+---
+# Need to run 'ansible-galaxy collection install ansible.posix' before using
+- hosts: all
+  become: true
+  tasks:
+  - name: Install nfs-utils package
+    yum:
+      name: nfs-utils
+      state: present
+
+  - name: Create directories for nfs usage
+    file:
+      path: "{{ item }}"
+      state: directory
+      mode: 0777
+    loop:
+      - /srv/nfs/kubedata
+      - /srv/nfs/kubedata/db
+      - /srv/nfs/kubedata/storage
+      - /srv/nfs/kubedata/logs
+
+  - name: Make the kubedata directory available on the network
+    blockinfile:
+      path: /etc/exports
+      block: |
+        /srv/nfs/kubedata    *(rw,sync,no_subtree_check,no_root_squash)
+
+  - name: Export updates
+    command: exportfs -rav
+
+  - name: Enable and start service nfs-server
+    systemd:
+      name: nfs-server
+      state: restarted
+      enabled: true
+
+  - name: Insert cluster's servers in /etc/hosts
+    blockinfile:
+      path: /etc/hosts
+      block: |
+        192.168.56.9  nfs-server.chmurki.kti.pl nfs-server
+        192.168.56.10 controlplane.chmurki.kti.pl controlplane
+        192.168.56.11 node-01.chmurki.kti.pl node-01
+        192.168.56.12 node-02.chmurki.kti.pl node-02
