@@ -79,7 +79,7 @@
     command: sysctl -p
 
   - name: Get node IP addr
-    shell: ip a l wlp2s0 | awk '/inet/ { print $2 }' | awk -F '/' '{ print $1 }'
+    shell: ip a l eth1 | awk '/inet / { print $2 }' | awk -F '/' '{ print $1 }'
     register: ip
 
   - name: Add node IP addr to kubelet
@@ -119,5 +119,5 @@
       block: |
         192.168.56.9  nfs-server.chmurki.kti.pl nfs-server
         192.168.56.10 controlplane.chmurki.kti.pl controlplane
-        192.168.56.11 node-01.chmurki.kti.pl node-01
-        192.168.56.12 node-02.chmurki.kti.pl node-02
+        192.168.56.11 node-1.chmurki.kti.pl node-1
+        192.168.56.12 node-2.chmurki.kti.pl node-2
