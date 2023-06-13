@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  creationTimestamp: null
+  labels:
+    app: database
+  name: database
+  namespace: chmurki
+spec:
+  serviceName: "database"
+  replicas: 1
+  selector:
+    matchLabels:
+      role: database
+  template:
+    metadata:
+      labels:
+        role: database
+        environment: test
+        replicaset: MainRepSet
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: database
+          image: mongo:latest
+          command:
+            - mongod
+            - "--wiredTigerCacheSizeGB"
+            - "0.25"
+            - "--bind_ip"
+            - "0.0.0.0"
+            - "--replSet"
+            - MainRepSet
+            - "--smallfiles"
+            - "--noprealloc"
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: database-storage
+              mountPath: /data/db
+        - name: mongo-sidecar
+          image: cvallance/mongo-k8s-sidecar
+          env:
+            - name: MONGO_SIDECAR_POD_LABELS
+              value: "role=mongo,environment=staging"
+            - name: KUBE_NAMESPACE
+              value: "mongo"
+            - name: KUBERNETES_MONGO_SERVICE_NAME
+              value: "mongo"
+  volumeClaimTemplates:
+  - metadata:
+      name: database-storage
+      namespace: chmurki
+      annotations:
+        volume.beta.kubernetes.io/storage-class: "persistent"
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+  labels:
+    name: database
+  namespace: chmurki
+spec:
+  ports:
+  - port: 27017
+    targetPort: 27017
+  selector:
+    role: database
