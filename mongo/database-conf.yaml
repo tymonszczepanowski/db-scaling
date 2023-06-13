@@ -36,7 +36,7 @@ spec:
           ports:
             - containerPort: 27017
           volumeMounts:
-            - name: database-storage
+            - name: nfs-volume
               mountPath: /data/db
         - name: mongo-sidecar
           image: cvallance/mongo-k8s-sidecar
@@ -47,17 +47,24 @@ spec:
               value: "mongo"
             - name: KUBERNETES_MONGO_SERVICE_NAME
               value: "mongo"
-  volumeClaimTemplates:
-  - metadata:
-      name: database-storage
-      namespace: chmurki
-      annotations:
-        volume.beta.kubernetes.io/storage-class: "persistent"
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 2Gi
+      volumes:
+        - name: nfs-volume
+          nfs:
+            server: 192.168.56.9
+            path: /srv/nfs/kubedata/storage
+            readOnly: no
+#
+#  volumeClaimTemplates:
+#  - metadata:
+#      name: database-storage
+#      namespace: chmurki
+#      annotations:
+#        volume.beta.kubernetes.io/storage-class: "persistent"
+#    spec:
+#      accessModes: [ "ReadWriteOnce" ]
+#      resources:
+#        requests:
+#          storage: 2Gi
 ---
 apiVersion: v1
 kind: Service

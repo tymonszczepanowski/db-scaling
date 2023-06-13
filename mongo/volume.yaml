@@ -15,4 +15,4 @@ spec:
     - nfsvers=4.1
   nfs:
     path: "/srv/nfs/kubedata/storage"
-    server: nfs-server.chmurki.kti.pl
+    server: 192.168.56.9
