@@ -28,7 +28,30 @@
   - name: Export updates
     command: exportfs -rav
 
-  - name: Enable and start service nfs-server
+  - name: Enable and start services
+    systemd:
+      name: "{{ item }}"
+      state: restarted
+      enabled: true
+    loop:
+      - rpcbind
+      - nfs-server
+      - nfs-lock
+      - nfs-idmap
+
+  - name: Add firewall rules
+    firewalld:
+      service: "{{ item }}"
+      zone: public
+      state: enabled
+      permanent: yes
+      immediate: yes
+    loop:
+      - nfs
+      - mountd
+      - rpc-bind
+
+  - name: Restart service nfs-server
     systemd:
       name: nfs-server
       state: restarted
