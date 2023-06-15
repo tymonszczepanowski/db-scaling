@@ -37,6 +37,8 @@ spec:
           image: mongo:latest
           command:
             - mongod
+            - "--bind_ip"
+            - "0.0.0.0"
             - "--replSet"
             - MainRepSet
           ports:
@@ -44,6 +46,11 @@ spec:
           volumeMounts:
             - name: database-storage
               mountPath: /data/db
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: mamut
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: tumam
         - name: mongo-sidecar
           image: cvallance/mongo-k8s-sidecar
           env:
@@ -53,6 +60,10 @@ spec:
               value: "chmurki"
             - name: KUBERNETES_MONGO_SERVICE_NAME
               value: "mongodb"
+            - name: MONGODB_USERNAME
+              value: mamut
+            - name: MONGODB_PASSWORD
+              value: tumam
       volumes:
         - name: database-storage
           persistentVolumeClaim:
@@ -70,7 +81,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongodb
+  name: mongodb-service
   labels:
     name: mongodb
   namespace: chmurki

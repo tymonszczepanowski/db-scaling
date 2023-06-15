@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: mongo-express
+  name: mongo-express
+  namespace: chmurki
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: express
+  template:
+    metadata:
+      labels:
+        role: express
+        environment: staging
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: mongo-express
+          image: mongo-express:latest
+          ports:
+            - containerPort: 8081
+          env:
+            - name: ME_CONFIG_MONGODB_ADMINUSERNAME
+              value: mamut
+            - name: ME_CONFIG_MONGODB_ADMINPASSWORD
+              value: tumam
+            - name: ME_CONFIG_MONGODB_URL
+              value: mongodb-service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-express-service
+  labels:
+    name: mongo-express
+  namespace: chmurki
+spec:
+  type: NodePort
+  ports:
+  - port: 8081
+    targetPort: 8081
+  selector:
+    role: mongo-express
