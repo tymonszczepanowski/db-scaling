@@ -3,12 +3,10 @@ kind: PersistentVolume
 metadata:
   name: database-storage
   namespace: chmurki
-  annotations:
-    volume.beta.kubernetes.io/storage-class: "persistent"
 spec:
   volumeMode: Filesystem
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   capacity:
     storage: 2Gi
   mountOptions:
@@ -16,3 +14,16 @@ spec:
   nfs:
     path: "/srv/nfs/kubedata/storage"
     server: 192.168.56.9
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-shared-pvc
+  namespace: chmurki
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 2Gi
+  volumeName: database-storage
