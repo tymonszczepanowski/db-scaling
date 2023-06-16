@@ -10,8 +10,14 @@
       permanent: yes
       immediate: yes
     loop:
-      - 6443/tcp
-      - 10250/tcp
+      - 179/tcp             # calico networking BGP
+      - 4789/udp            # calico networking VXLAN
+      - 51820/udp           # calico networking ipv4 wireguard
+      - 51821/udp           # calico networking ipv6 wireguard
+      - 4789/udp            # flannel networking
+      - 6443/tcp            # kubernetes API server
+      - 10250/tcp           # kubelet API
+      - 30000-32767/tcp     # NodePort services
 
   - name: Set SELinux in permissive mode, logging actions that would be blocked
     ansible.posix.selinux:
