@@ -1,93 +1,75 @@
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  creationTimestamp: null
-  labels:
-    app: mongodb
-  name: mongodb
-  namespace: chmurki
-spec:
-  serviceName: "mongodb"
-  replicas: 1
-  selector:
-    matchLabels:
-      role: database
-  template:
-    metadata:
-      labels:
-        role: database
-        environment: staging
-        replicaset: MainRepSet
-    spec:
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              labelSelector:
-                matchExpressions:
-                - key: replicaset
-                  operator: In
-                  values:
-                  - MainRepSet
-              topologyKey: kubernetes.io/hostname
-      terminationGracePeriodSeconds: 30
-      containers:
-        - name: mongodb
-          image: mongo:latest
-          command:
-            - mongod
-            - "--bind_ip"
-            - "0.0.0.0"
-            - "--replSet"
-            - MainRepSet
-          ports:
-            - containerPort: 27017
-          volumeMounts:
-            - name: database-storage
-              mountPath: /data/db
-          env:
-            - name: MONGO_INITDB_ROOT_USERNAME
-              value: mamut
-            - name: MONGO_INITDB_ROOT_PASSWORD
-              value: tumam
-        - name: mongo-sidecar
-          image: cvallance/mongo-k8s-sidecar
-          env:
-            - name: MONGO_SIDECAR_POD_LABELS
-              value: "role=database,environment=staging"
-            - name: KUBE_NAMESPACE
-              value: "chmurki"
-            - name: KUBERNETES_MONGO_SERVICE_NAME
-              value: "mongodb"
-            - name: MONGODB_USERNAME
-              value: mamut
-            - name: MONGODB_PASSWORD
-              value: tumam
-      volumes:
-        - name: database-storage
-          persistentVolumeClaim:
-            claimName: db-shared-pvc
-#  volumeClaimTemplates:
-#  - metadata:
-#      name: database-storage
-#      namespace: chmurki
-#    spec:
-#      accessModes: [ "ReadWriteMany" ]
-#      resources:
-#        requests:
-#          storage: 2Gi
----
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongodb-service
+  name: mongo
   labels:
-    name: mongodb
+    name: mongo
   namespace: chmurki
 spec:
   ports:
   - port: 27017
     targetPort: 27017
   selector:
-    role: database
+    role: mongo
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  creationTimestamp: null
+  labels:
+    app: mongo
+  name: mongo
+  namespace: chmurki
+spec:
+  serviceName: "mongo"
+  replicas: 2
+  selector:
+    matchLabels:
+      role: mongo
+  template:
+    metadata:
+      labels:
+        role: mongo
+        environment: test
+        replicaset: rs0
+    spec:
+#      affinity:
+#        podAntiAffinity:
+#          preferredDuringSchedulingIgnoredDuringExecution:
+#          - weight: 100
+#            podAffinityTerm:
+#              labelSelector:
+#                matchExpressions:
+#                - key: replicaset
+#                  operator: In
+#                  values:
+#                  - rs0
+#              topologyKey: kubernetes.io/hostname
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: mongodb
+          image: mongo:latest
+          command:
+            - mongod
+            - "--replSet"
+            - rs0
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: mongo-persistant-storage
+              mountPath: /data/db
+        - name: mongo-sidecar
+          image: cvallance/mongo-k8s-sidecar
+          env:
+            - name: MONGO_SIDECAR_POD_LABELS
+              value: "role=mongo,environment=test"
+  volumeClaimTemplates:
+  - metadata:
+      name: mongo-persistant-storage
+      annotations:
+        volume.beta.kubernetes.io/storage-class: "nfs-client"
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 5Gi
