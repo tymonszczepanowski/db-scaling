@@ -3,21 +3,11 @@
 - hosts: all
   become: true
   tasks:
-  - name: Open ports 6443 and 10250
-    ansible.posix.firewalld:
-      port: "{{ item }}"
-      state: enabled
-      permanent: yes
-      immediate: yes
-    loop:
-      - 179/tcp             # calico networking BGP
-      - 4789/udp            # calico networking VXLAN
-      - 51820/udp           # calico networking ipv4 wireguard
-      - 51821/udp           # calico networking ipv6 wireguard
-      - 4789/udp            # flannel networking
-      - 6443/tcp            # kubernetes API server
-      - 10250/tcp           # kubelet API
-      - 30000-32767/tcp     # NodePort services
+  - name: Stop and disable firewalld
+    systemd:
+      name: firewalld
+      state: stopped
+      enabled: false
 
   - name: Set SELinux in permissive mode, logging actions that would be blocked
     ansible.posix.selinux:

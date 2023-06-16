@@ -10,14 +10,9 @@
 
   - name: Create directories for nfs usage
     file:
-      path: "{{ item }}"
+      path: /srv/nfs
       state: directory
       mode: 0777
-    loop:
-      - /srv/nfs/kubedata
-      - /srv/nfs/kubedata/db
-      - /srv/nfs/kubedata/storage
-      - /srv/nfs/kubedata/logs
 
   - name: Make the kubedata directory available on the network
     blockinfile:
