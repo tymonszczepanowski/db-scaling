@@ -3,6 +3,7 @@ SHELL := /bin/bash
 create-namespace:
 	kubectl create namespace chmurki
 
+# nfs-provisioner
 install-nfspv-rbac:
 	kubectl create -f config/nfs-provisioner/rbac.yaml
 
@@ -15,21 +16,28 @@ deploy-nfspv:
 deploy-nfs-provisioner: install-nfspv-rbac install-nfspv-sc deploy-nfspv
 
 
+# mongo
 install-mongo-crd:
-	kubectl apply -f config/mongo-with-operator/crd.yaml
+	kubectl apply -f config/mongo/crd.yaml
 
 install-mongo-rbac:
-	kubectl apply -k config/mongo-with-operator/rbac/ --namespace chmurki
+	kubectl apply -k config/mongo/rbac/ --namespace chmurki
 
 deploy-mongo-operator: install-mongo-crd install-mongo-rbac
-	kubectl create -f config/mongo-with-operator/manager.yaml --namespace chmurki
+	kubectl create -f config/mongo/manager.yaml --namespace chmurki
 
 deploy-mongo-replicaset:
-	kubectl create -f config/mongo-with-operator/replicaset.yaml --namespace chmurki
+	kubectl create -f config/mongo/replicaset.yaml --namespace chmurki
 
-deploy-mongo: deploy-mongo-operator deploy-mongo-replicaset
+deploy-mongo: install-mongo-crd install mongo-rbac deploy-mongo-operator deploy-mongo-replicaset
 
 
+# mongo-express
+deploy-express:
+	kubectl apply -f config/express/deploy.yaml
+
+
+# prints
 print-nodes:
 	kubectl get nodes -o wide && echo
 
@@ -43,3 +51,5 @@ print-chmurki-pvc:
 	kubectl get pvc -n chmurki && echo
 
 print: print-nodes print-chmurki print-chmurki-pv print-chmurki-pvc
+
+install: create-namespace deploy-nfs-provisioner deploy-mongo deploy-express
