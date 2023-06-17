@@ -1,9 +1,12 @@
 SHELL := /bin/bash
 
+create-namespace:
+	kubectl create namespace chmurki
+
 install-nfspv-rbac:
 	kubectl create -f config/nfs-provisioner/rbac.yaml
 
-install-nfspv-storage-class:
+install-nfspv-sc:
 	kubectl create -f config/nfs-provisioner/storage-class.yaml
 
 deploy-nfspv:

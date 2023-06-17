@@ -18,7 +18,7 @@
     blockinfile:
       path: /etc/exports
       block: |
-        /srv/nfs/kubedata    *(rw,sync,no_subtree_check,no_root_squash)
+        /srv/nfs    *(rw,sync,no_subtree_check,no_root_squash)
 
   - name: Export updates
     command: exportfs -rav

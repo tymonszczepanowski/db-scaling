@@ -4,7 +4,7 @@ kind: MongoDBCommunity
 metadata:
   name: mongodb
 spec:
-  members: 3
+  members: 1
   type: ReplicaSet
   version: "6.0.5"
   security:
@@ -21,16 +21,35 @@ spec:
         - name: userAdminAnyDatabase
           db: admin
       scramCredentialsSecretName: my-scram
-  additionalMongodConfig:
-    storage.wiredTiger.engineConfig.journalCompressor: zlib
   statefulSet:
     spec:
+      template:
+        spec:
+          terminationGracePeriodSeconds: 30
+          containers:
+            - name: "mongodb-agent"
+              resources:
+                requests:
+                  cpu: 200m
+                  memory: 200M
+                limits:
+                  cpu: 400m
+                  memory: 600M
+            - name: "mongod"
+              resources:
+                requests:
+                  cpu: 300m
+                  memory: 400M
+                limits:
+                  cpu: 400m
+                  memory: 600M
       volumeClaimTemplates:
         - metadata:
             name: data-volume
             volume.beta.kubernetes.io/storage-class: "nfs-client"
           spec:
             accessModes: ["ReadWriteOnce"]
+            storageClassName: "nfs-client"
             resources:
               requests:
                 storage: 2G
@@ -38,11 +57,11 @@ spec:
             name: logs-volume
             volume.beta.kubernetes.io/storage-class: "nfs-client"
           spec:
-          spec:
             accessModes: [ "ReadWriteOnce" ]
+            storageClassName: "nfs-client"
             resources:
               requests:
-                storage: 2G
+                storage: 500M
 
 # the user credentials will be generated from this secret
 # once the credentials are generated, this secret is no longer required
