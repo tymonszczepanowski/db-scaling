@@ -22,9 +22,16 @@ spec:
           image: mongo-express:latest
           ports:
             - containerPort: 8081
+              protocol: TCP
           env:
             - name: ME_CONFIG_MONGODB_URL
               value: mongodb://my-user:mamut123@mongodb-svc:27017/
+            - name: ME_CONFIG_MONGODB_ENABLE_ADMIN
+              value: "true"
+            - name: ME_CONFIG_ADMINUSERNAME
+              value: "my-user"
+            - name: ME_CONFIG_ADMINPASSWORD
+              value: "mamut123"
 ---
 apiVersion: v1
 kind: Service

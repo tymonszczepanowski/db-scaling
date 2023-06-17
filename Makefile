@@ -29,7 +29,7 @@ deploy-mongo-operator: install-mongo-crd install-mongo-rbac
 deploy-mongo-replicaset:
 	kubectl create -f config/mongo/replicaset.yaml --namespace chmurki
 
-deploy-mongo: install-mongo-crd install mongo-rbac deploy-mongo-operator deploy-mongo-replicaset
+deploy-mongo: install-mongo-crd install-mongo-rbac deploy-mongo-operator deploy-mongo-replicaset
 
 
 # mongo-express
@@ -42,13 +42,13 @@ print-nodes:
 	kubectl get nodes -o wide && echo
 
 print-chmurki:
-	kubectl get all -n chmurki && echo
+	kubectl get all -n chmurki -o wide && echo
 
 print-chmurki-pv:
-	kubectl get pv -n chmurki && echo
+	kubectl get pv -n chmurki -o wide && echo
 
 print-chmurki-pvc:
-	kubectl get pvc -n chmurki && echo
+	kubectl get pvc -n chmurki -o wide && echo
 
 print: print-nodes print-chmurki print-chmurki-pv print-chmurki-pvc
 
