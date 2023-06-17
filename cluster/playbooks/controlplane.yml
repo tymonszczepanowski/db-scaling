@@ -1,5 +1,6 @@
 ---
-# Need to run 'ansible-galaxy collection install ansible.posix' before using
+# Need to run 'ansible-galaxy collection install ansible.posix'
+# and ansible-galaxy collection install kubernetes.core before using
 - hosts: all
   become: true
   tasks:
@@ -78,11 +79,6 @@
     shell: ip a l eth1 | awk '/inet / { print $2 }' | awk -F '/' '{ print $1 }'
     register: ip
 
-  - name: Print ip
-    debug:
-      var: ip
-      verbosity: 2
-
   - name: Add node IP addr to kubelet
     replace:
       path: /etc/sysconfig/kubelet
@@ -109,24 +105,6 @@
   - name: Initialize control-plane node
     command: kubeadm init --apiserver-advertise-address "192.168.56.10" --apiserver-cert-extra-sans "192.168.56.10" --pod-network-cidr 172.100.0.0/16
 
-  # Set up a Pod netowork add-on - Calico
-  - name: Download Calico.conf
-    get_url:
-      url: https://docs.projectcalico.org/v3.25/manifests/calico.yaml
-      dest: /home/vagrant/calico.yaml
-
-  - name: Uncomment Calico IPv4 pool option
-    replace:
-      path: /home/vagrant/calico.yaml
-      regexp: '^\s{12}#\s*- name: CALICO_IPV4POOL_CIDR.*$'
-      replace: '            - name: CALICO_IPV4POOL_CIDR'
-
-  - name: Set IPv4 pool to pod-network passed to kubeadm
-    replace:
-      path: /home/vagrant/calico.yaml
-      regexp: '^\s{12}#\s*  value: "192.168.0.0\/16".*$'
-      replace: '              value: "172.100.0.0/16"'
-
   - name: Create kube directory for vagrant user
     file:
       path: /home/vagrant/.kube
@@ -141,9 +119,34 @@
       group: vagrant
       mode: '0644'
 
-  - name: Install Calico
-    command: kubectl apply -f /home/vagrant/calico.yaml
+  - name: Install Tigera Calico operator and custom resource definitions
+    command: kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.0/manifests/tigera-operator.yaml
     become: false
+
+  - name: Deploy Calico operator
+    kubernetes.core.k8s:
+      apiVersion: operator.tigera.io/v1
+      kind: Installation
+      metadata:
+        name: default
+      spec:
+        # Configures Calico networking.
+        calicoNetwork:
+          # Note: The ipPools section cannot be modified post-install.
+          ipPools:
+          - blockSize: 26
+            cidr: 172.100.0.0/16
+            encapsulation: VXLANCrossSubnet
+            natOutgoing: Enabled
+            nodeSelector: all()
+
+  - name: Install Calico APIServer
+    kubernetes.core.k8s:
+      apiVersion: operator.tigera.io/v1
+      kind: APIServer
+      metadata:
+        name: default
+      spec: {}
 
   - name: Generate join command for worker nodes
     command: kubeadm token create --print-join-command

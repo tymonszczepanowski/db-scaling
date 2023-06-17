@@ -78,11 +78,6 @@
     shell: ip a l eth1 | awk '/inet / { print $2 }' | awk -F '/' '{ print $1 }'
     register: ip
 
-  - name: Print ip
-    debug:
-      var: ip
-      verbosity: 2
-
   - name: Add node IP addr to kubelet
     replace:
       path: /etc/sysconfig/kubelet
