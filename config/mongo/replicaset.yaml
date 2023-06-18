@@ -6,10 +6,10 @@ metadata:
 spec:
   members: 1
   type: ReplicaSet
-  version: "5.0.5"
+  version: "4.2.6"
   security:
     authentication:
-      modes: ["SCRAM-SHA-1"]
+      modes: ["SCRAM-SHA-1", "SCRAM-SHA-256"]
   users:
     - name: my-user
       db: admin
@@ -77,22 +77,8 @@ spec:
               requests:
                 storage: 500M
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: mongodb-svc
-spec:
-  type: NodePort
-  selector:
-    app: mongodb-svc
-  ports:
-    - port: 27017
-      targetPort: 27017
-      nodePort: 30017
-
 # the user credentials will be generated from this secret
 # once the credentials are generated, this secret is no longer required
----
 apiVersion: v1
 kind: Secret
 metadata:
