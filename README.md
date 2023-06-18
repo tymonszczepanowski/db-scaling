@@ -15,7 +15,8 @@ mongo-replicaset $ cd cluster
 # Start vagrant provisioning
 mongo-replicaset/cluster $ vagrant up
 ```
-Once your cluster is running we suggest copying .kube/config from the controlplane node onto your local computer.
+Once your cluster is running we suggest copying .kube/config from the controlplane node onto your local computer.  
+![Screenshot](screenshots/env.png)
 
 ### Deployment
 In order to deploy the MongoDB replicaset use:
@@ -24,6 +25,7 @@ mongo-replicaset $ make install
 ```
 It will install needed CRDs and deploy both NFS Provisioner as well as MongoDB Replicaset.  
 On top of that it deploys Mongo Express which is an interactive lightweight Web-Based Administrative Tool to effectively manage MongoDB Databases. It will be available outside the cluster at 192.168.56.10:30081.
+![Screenshot](screenshots/arch.png)
 
 ### Scaling
 At the current state of development MongoDB Community Kubernetes Operator is not particularly helpful when it comes to scaling the replicaset (to say the least).  
