@@ -33,3 +33,10 @@ In order to do it you need to:
 * Change 'members' attribute in the config/mongo/replicaset.yaml file
 * Delete statefulset.apps/mongodb using kubectl
 * Hope for the best
+
+### Exposing mongodb-svc
+For some weird reason operator has a problem with defining a NodePort service inside the config/mongo/replicaset.yaml.  
+Therefore, in order to expose database's service we simply use kubectl expose:
+```shell
+kubectl port-forward service/mongodb-svc 27017:27017 -n chmurki
+```
