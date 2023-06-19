@@ -28,15 +28,26 @@ On top of that it deploys Mongo Express which is an interactive lightweight Web-
 ![Screenshot](screenshots/arch.png)
 
 ### Scaling
-At the current state of development MongoDB Community Kubernetes Operator is not particularly helpful when it comes to scaling the replicaset (to say the least).  
-In order to do it you need to:
+In order to scale the mongo replicaset, you need to:
 * Change 'members' attribute in the config/mongo/replicaset.yaml file
-* Delete statefulset.apps/mongodb using kubectl
+* Run kubectl apply -f config/mongo/replicaset -n chmurki
 * Hope for the best
 
 ### Exposing mongodb-svc
 For some weird reason operator has a problem with defining a NodePort service inside the config/mongo/replicaset.yaml.  
-Therefore, in order to expose database's service we simply use kubectl expose:
+Therefore, in order to expose database's service we simply use kubectl port-forward:
 ```shell
-kubectl port-forward service/mongodb-svc 27017:27017 -n chmurki
+$ kubectl port-forward service/mongodb-svc 27017:27017 -n chmurki
+```
+
+### Testing
+For testing we have used [Yahoo! Cloud Serving Benchmark](https://github.com/brianfrankcooper/YCSB)  
+```shell
+$ curl -O --location https://github.com/brianfrankcooper/YCSB/releases/download/0.17.0/ycsb-0.17.0.tar.gz
+$ tar xfvz ycsb-0.17.0.tar.gz
+$ cd ycsb-0.17.0
+# Load data
+ycsb-0-17.0 $ ./bin/ycsb load mongodb -s -P workloads/workloada -p recordcount=100000 -threads 4 -p mongodb.url="mongodb://user:password@localhost:27017/admin"
+# Run benchmark
+ycsb-0-17-0 $ ./bin/ycsb run mongodb -s -P workloads/workloada -threads 2 -p mongodb.url="mongodb://user:password@localhost:27017/admin"
 ```
